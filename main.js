@@ -232,33 +232,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Create Web Audio Context (lazily initialized on first interaction due to browser policies)
     let audioCtx;
-    // Melody frequencies for Yiruma's "River Flows in You" (instantly recognizable, peaceful piano melody)
+    // Chorus melody frequencies for One Direction's "Night Changes" (G Major version)
+    // We're only getting older, baby
+    // And I've been thinking about it lately
+    // Does it ever drive you crazy
+    // Just how fast the night changes
     const melodyFrequencies = [
-        739.99, // F#5
-        659.25, // E5
-        739.99, // F#5
-        659.25, // E5
-        739.99, // F#5
-        440.00, // A4
-        554.37, // C#5
-        329.63, // E4
-        369.99, // F#4
-        293.66, // D4
-        369.99, // F#4
-        440.00, // A4
-        587.33, // D5
-        554.37, // C#5
-        493.88, // B4
-        440.00, // A4
-        415.30, // G#4
-        440.00, // A4
-        493.88, // B4
-        329.63  // E4
+        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00, 392.00, // We're only getting older, baby
+        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00, 392.00, // And I've been thinking about it lately
+        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00, 440.00, // Does it ever drive you crazy
+        493.88, 440.00, 392.00, 392.00, 440.00, 392.00, 392.00                  // Just how fast the night changes
     ];
     let noteIndex = 0;
 
-    // Synthesizes a simple, pure, and soothing meditation bell chime playing the song melody
-    function playSimpleBell() {
+    // Synthesizes a gentle piano bell strike with soft harmonics, volume scaling based on click pressure
+    function playSimpleBell(pressure = 0.5) {
         try {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -273,23 +261,53 @@ document.addEventListener("DOMContentLoaded", () => {
             const freq = melodyFrequencies[noteIndex];
             noteIndex = (noteIndex + 1) % melodyFrequencies.length;
 
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+            // Scale volume based on pointer pressure (gentler tap = softer sound)
+            const baseGain = 0.08 + (pressure * 0.14); // Range: 0.08 to 0.22
+
+            // 1. Fundamental string strike (sine wave)
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = "sine";
+            osc1.frequency.setValueAtTime(freq, now);
             
-            // Soothing sine wave for a pure, clean tone
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(freq, now);
+            gain1.gain.setValueAtTime(0, now);
+            gain1.gain.linearRampToValueAtTime(baseGain, now + 0.008); // 8ms attack
+            gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.4); // 1.4s decay
+
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.start(now);
+            osc1.stop(now + 1.45);
+
+            // 2. Second harmonic (soft octave chime)
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = "sine";
+            osc2.frequency.setValueAtTime(freq * 2, now);
             
-            // Gain envelope: smooth instant attack (10ms) to avoid click, clean exponential decay (1.2s)
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.25, now + 0.01);
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+            gain2.gain.setValueAtTime(0, now);
+            gain2.gain.linearRampToValueAtTime(baseGain * 0.25, now + 0.008);
+            gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.7); // decays twice as fast
+
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start(now);
+            osc2.stop(now + 0.75);
+
+            // 3. Third harmonic (subtle fifth)
+            const osc3 = audioCtx.createOscillator();
+            const gain3 = audioCtx.createGain();
+            osc3.type = "sine";
+            osc3.frequency.setValueAtTime(freq * 3, now);
             
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            osc.start(now);
-            osc.stop(now + 1.25);
+            gain3.gain.setValueAtTime(0, now);
+            gain3.gain.linearRampToValueAtTime(baseGain * 0.12, now + 0.01);
+            gain3.gain.exponentialRampToValueAtTime(0.0001, now + 0.4); // decays very fast
+
+            osc3.connect(gain3);
+            gain3.connect(audioCtx.destination);
+            osc3.start(now);
+            osc3.stop(now + 0.45);
         } catch (e) {
             console.warn("Web Audio API not supported or blocked: ", e);
         }
@@ -305,7 +323,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.vibrate) {
             navigator.vibrate([35, 50, 35]);
         }
-        playSimpleBell();
+        
+        // Extract pointer pressure (default to 0.5 for standard clicks)
+        const pressure = e.pressure !== undefined && e.pressure > 0 ? e.pressure : 0.5;
+        playSimpleBell(pressure);
 
         const now = Date.now();
         const clickX = e.clientX;
