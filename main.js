@@ -244,39 +244,68 @@ document.addEventListener("DOMContentLoaded", () => {
     let schedulerTimerID;
 
     // Chord progression notes: Bass note + chord notes (arpeggiated)
-    // We define G Major -> Em7 -> Am7 -> D7 (Verse) and C -> D -> G -> Em (Chorus) for Night Changes
-    const verseChords = [
-        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] }, // G Major
-        { bass: 82.41, chord: [164.81, 246.94, 293.66, 392.00] }, // Em7
-        { bass: 110.00, chord: [220.00, 261.63, 329.63, 392.00] }, // Am7
-        { bass: 73.42, chord: [146.83, 220.00, 293.66, 349.23] }  // D7
-    ];
-
-    const chorusChords = [
-        { bass: 130.81, chord: [261.63, 329.63, 392.00, 523.25] }, // C Major
-        { bass: 146.83, chord: [293.66, 369.99, 440.00, 587.33] }, // D Major
-        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] },  // G Major
-        { bass: 82.41, chord: [164.81, 246.94, 329.63, 392.00] },  // Em
-        { bass: 130.81, chord: [261.63, 329.63, 392.00, 523.25] }, // C Major
-        { bass: 146.83, chord: [293.66, 369.99, 440.00, 587.33] }, // D Major
-        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] },  // G Major
-        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] }   // G Major
-    ];
-
-    // Loops 2x Verse, 1x Chorus
+    // The user wants ONLY the chorus loop played in the background, matching the lyrics:
     const songChords = [
-        ...verseChords, ...verseChords,
-        ...chorusChords
+        { bass: 130.81, chord: [261.63, 329.63, 392.00, 523.25] }, // Measure 0: C Major
+        { bass: 146.83, chord: [293.66, 369.99, 440.00, 587.33] }, // Measure 1: D Major
+        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] },  // Measure 2: G Major
+        { bass: 82.41, chord: [164.81, 246.94, 329.63, 392.00] },  // Measure 3: Em
+        
+        { bass: 130.81, chord: [261.63, 329.63, 392.00, 523.25] }, // Measure 4: C Major
+        { bass: 146.83, chord: [293.66, 369.99, 440.00, 587.33] }, // Measure 5: D Major
+        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] },  // Measure 6: G Major
+        { bass: 82.41, chord: [164.81, 246.94, 329.63, 392.00] },  // Measure 7: Em
+        
+        { bass: 130.81, chord: [261.63, 329.63, 392.00, 523.25] }, // Measure 8: C Major
+        { bass: 146.83, chord: [293.66, 369.99, 440.00, 587.33] }, // Measure 9: D Major
+        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] },  // Measure 10: G Major
+        { bass: 82.41, chord: [164.81, 246.94, 329.63, 392.00] },  // Measure 11: Em
+        
+        { bass: 130.81, chord: [261.63, 329.63, 392.00, 523.25] }, // Measure 12: C Major
+        { bass: 146.83, chord: [293.66, 369.99, 440.00, 587.33] }, // Measure 13: D Major
+        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] },  // Measure 14: G Major
+        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] }   // Measure 15: G Major
     ];
 
-    // Chorus melody frequencies for One Direction's "Night Changes"
+    // 128-step chorus melody map (16 measures * 8 eighth-notes per measure)
     const melodyFrequencies = [
-        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00, 392.00, // We're only getting older, baby
-        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00, 392.00, // And I've been thinking about it lately
-        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00, 440.00, // Does it ever drive you crazy
-        493.88, 440.00, 392.00, 392.00, 440.00, 392.00, 392.00                  // Just how fast the night changes
+        // M0: "We're only gettin'"
+        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00,
+        // M1: "older, baby"
+        392.00, 0, 0, 0, 0, 0, 0, 0,
+        // M2: "And I've been thinkin'"
+        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00,
+        // M3: "about it lately"
+        392.00, 392.00, 0, 0, 0, 0, 0, 0,
+        
+        // M4: "Does it ever drive you"
+        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00,
+        // M5: "crazy"
+        440.00, 0, 0, 0, 0, 0, 0, 0,
+        // M6: "Just how fast the"
+        493.88, 440.00, 392.00, 392.00, 440.00, 392.00, 392.00, 0,
+        // M7: "night changes?"
+        0, 0, 0, 0, 0, 0, 0, 0,
+        
+        // M8: "Everything that you've ever"
+        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00,
+        // M9: "dreamed of"
+        392.00, 0, 0, 0, 0, 0, 0, 0,
+        // M10: "Disappearing when you"
+        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00,
+        // M11: "wake up"
+        392.00, 0, 0, 0, 0, 0, 0, 0,
+        
+        // M12: "But there's nothing to be"
+        493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00,
+        // M13: "afraid of"
+        440.00, 0, 0, 0, 0, 0, 0, 0,
+        // M14: "Even when the night changes"
+        493.88, 440.00, 392.00, 392.00, 440.00, 392.00, 392.00, 0,
+        // M15: "It will never change me and you"
+        392.00, 440.00, 493.88, 587.33, 493.88, 440.00, 392.00, 392.00
     ];
-    let noteIndex = 0;
+    let currentMeasureIndex = 0;
 
     // Synthesizes a background piano voice (connected to bgGainNode)
     function schedulePlayPiano(freq, time, volume, decay) {
@@ -315,6 +344,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Schedules a beat arpeggio step
     function scheduleBeat(beatNumber, time) {
         const measure = Math.floor(beatNumber / 8) % songChords.length;
+        currentMeasureIndex = measure; // Track active measure for manual clicks
         const step = beatNumber % 8; // 8 eighth-notes per measure
         const chordInfo = songChords[measure];
 
@@ -324,12 +354,20 @@ document.addEventListener("DOMContentLoaded", () => {
             schedulePlayPiano(chordInfo.bass * 2, time, 0.03, 1.6);
         }
 
-        // Steps 1-7: Rolling arpeggios
+        // Steps 1-7: Rolling arpeggios (accompaniment)
         const arpeggioPattern = [0, 1, 2, 3, 2, 1, 0];
         if (step > 0 && step < 8) {
             const index = arpeggioPattern[step - 1];
             const noteFreq = chordInfo.chord[index];
-            schedulePlayPiano(noteFreq, time, 0.045, 1.3);
+            schedulePlayPiano(noteFreq, time, 0.035, 1.2);
+        }
+
+        // Schedule melody note automatically
+        const melodyStep = beatNumber % melodyFrequencies.length;
+        const melodyFreq = melodyFrequencies[melodyStep];
+        if (melodyFreq > 0) {
+            // Play melody slightly louder so it sings over the accompaniment
+            schedulePlayPiano(melodyFreq, time, 0.14, 1.6);
         }
     }
 
@@ -374,10 +412,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const now = audioCtx.currentTime;
-            const freq = melodyFrequencies[noteIndex];
-            noteIndex = (noteIndex + 1) % melodyFrequencies.length;
+            
+            // Get the current active chord in the background loop
+            const activeChord = songChords[currentMeasureIndex];
+            // Pick a random chord note and shift it 2 octaves up for a gorgeous celestial sparkle!
+            const baseFreq = activeChord.chord[Math.floor(Math.random() * activeChord.chord.length)];
+            const freq = baseFreq * 2; // transpose 2 octaves up
 
-            const baseGain = 0.08 + (pressure * 0.14); // Range: 0.08 to 0.22
+            const baseGain = 0.05 + (pressure * 0.08); // Range: 0.05 to 0.13 (soft, sparkling chimes)
 
             const osc1 = audioCtx.createOscillator();
             const gain1 = audioCtx.createGain();
@@ -385,41 +427,29 @@ document.addEventListener("DOMContentLoaded", () => {
             osc1.frequency.setValueAtTime(freq, now);
             
             gain1.gain.setValueAtTime(0, now);
-            gain1.gain.linearRampToValueAtTime(baseGain, now + 0.008);
-            gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
+            gain1.gain.linearRampToValueAtTime(baseGain, now + 0.005);
+            gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
 
             osc1.connect(gain1);
             gain1.connect(audioCtx.destination);
             osc1.start(now);
-            osc1.stop(now + 1.45);
+            osc1.stop(now + 1.25);
 
+            // Add a tiny detuned high overtone for fairy-dust shimmer
             const osc2 = audioCtx.createOscillator();
             const gain2 = audioCtx.createGain();
             osc2.type = "sine";
-            osc2.frequency.setValueAtTime(freq * 2, now);
+            osc2.frequency.setValueAtTime(freq * 1.5, now); // perfect fifth overtone
+            osc2.detune.setValueAtTime((Math.random() - 0.5) * 12, now);
             
             gain2.gain.setValueAtTime(0, now);
-            gain2.gain.linearRampToValueAtTime(baseGain * 0.25, now + 0.008);
-            gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+            gain2.gain.linearRampToValueAtTime(baseGain * 0.3, now + 0.005);
+            gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
 
             osc2.connect(gain2);
             gain2.connect(audioCtx.destination);
             osc2.start(now);
-            osc2.stop(now + 0.75);
-
-            const osc3 = audioCtx.createOscillator();
-            const gain3 = audioCtx.createGain();
-            osc3.type = "sine";
-            osc3.frequency.setValueAtTime(freq * 3, now);
-            
-            gain3.gain.setValueAtTime(0, now);
-            gain3.gain.linearRampToValueAtTime(baseGain * 0.12, now + 0.01);
-            gain3.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
-
-            osc3.connect(gain3);
-            gain3.connect(audioCtx.destination);
-            osc3.start(now);
-            osc3.stop(now + 0.45);
+            osc2.stop(now + 0.65);
         } catch (e) {
             console.warn("Web Audio API not supported or blocked: ", e);
         }
