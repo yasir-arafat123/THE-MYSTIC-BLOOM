@@ -36,6 +36,18 @@ document.addEventListener("DOMContentLoaded", () => {
         p.style.left = `${startX}px`;
         p.style.top = `${startY}px`;
 
+        // Multi-colored powder/pollen that complements the gold/cyan/rose art theme
+        const colors = [
+            { bg: "rgb(255, 200, 80)", glow: "rgba(255, 170, 50, 0.7)" },   // Gold
+            { bg: "rgb(255, 135, 180)", glow: "rgba(255, 80, 150, 0.7)" },   // Rose Pink
+            { bg: "rgb(80, 240, 255)", glow: "rgba(30, 200, 255, 0.7)" },    // Cyan/Teal
+            { bg: "rgb(255, 140, 90)", glow: "rgba(255, 90, 40, 0.7)" },     // Warm Coral
+            { bg: "rgb(255, 255, 255)", glow: "rgba(255, 255, 255, 0.7)" }   // Sparkle White
+        ];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        p.style.backgroundColor = color.bg;
+        p.style.boxShadow = `0 0 6px ${color.bg}, 0 0 12px ${color.glow}`;
+
         // Physics variables
         const duration = isBurst ? (Math.random() * 2000 + 1500) : (Math.random() * 8000 + 6000);
         const driftX = isBurst 

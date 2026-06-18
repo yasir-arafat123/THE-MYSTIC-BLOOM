@@ -282,12 +282,10 @@ body.loaded .light-beam {
 /* --- Particle Effects (Pollen/Fireflies) --- */
 .pollen {
     position: absolute;
-    background-color: rgb(255, 218, 122);
     border-radius: 50%;
     pointer-events: none;
     z-index: 30;
     filter: blur(0.5px);
-    box-shadow: 0 0 6px rgba(255, 218, 122, 0.8), 0 0 12px rgba(255, 184, 76, 0.4);
 }
 
 /* --- Animations --- */
