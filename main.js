@@ -1,5 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Remove "not-loaded" and add "loaded" class to trigger main CSS transitions
+    let signalIntervalID;
+    function resetSignalInterval() {
+        if (signalIntervalID) clearInterval(signalIntervalID);
+        signalIntervalID = setInterval(triggerSignalNetwork, 5000);
+    }
+
     const loadTimeout = setTimeout(() => {
         document.body.classList.remove("not-loaded");
         document.body.classList.add("loaded");
@@ -7,9 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // Trigger electrical branching signals immediately on load
         triggerSignalNetwork();
-        
-        // Repeat signaling pulses every 5 seconds
-        setInterval(triggerSignalNetwork, 5000);
+        resetSignalInterval();
     }, 1000);
 
     // 2. Generate background stars
@@ -34,11 +38,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function spawnPollen(startX, startY, isBurst = false) {
         const p = document.createElement("div");
         p.className = "pollen";
+        p.innerText = "❤"; // Unicode Heart
         document.body.appendChild(p);
 
-        const size = isBurst ? (Math.random() * 3 + 1) : (Math.random() * 4 + 2);
-        p.style.width = `${size}px`;
-        p.style.height = `${size}px`;
+        // Hearts look better when slightly larger than standard pixel dots
+        const size = isBurst ? (Math.random() * 8 + 6) : (Math.random() * 12 + 8); // 6-14px for burst, 8-20px for ambient
+        p.style.fontSize = `${size}px`;
         p.style.left = `${startX}px`;
         p.style.top = `${startY}px`;
 
@@ -51,8 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
             { bg: "rgb(255, 255, 255)", glow: "rgba(255, 255, 255, 0.7)" }   // Sparkle White
         ];
         const color = colors[Math.floor(Math.random() * colors.length)];
-        p.style.backgroundColor = color.bg;
-        p.style.boxShadow = `0 0 6px ${color.bg}, 0 0 12px ${color.glow}`;
+        p.style.color = color.bg;
+        p.style.textShadow = `0 0 6px ${color.bg}, 0 0 12px ${color.glow}`;
 
         // Physics variables
         const duration = isBurst ? (Math.random() * 2000 + 1500) : (Math.random() * 8000 + 6000);
@@ -80,10 +85,11 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             const p = document.createElement("div");
             p.className = "signal-pulse";
+            p.innerText = "❤"; // Glowing heart node!
             
             if (colorObj) {
-                p.style.backgroundColor = colorObj.bg;
-                p.style.boxShadow = `0 0 8px ${colorObj.bg}, 0 0 16px ${colorObj.bg}, 0 0 24px ${colorObj.glow}`;
+                p.style.color = colorObj.bg;
+                p.style.textShadow = `0 0 12px ${colorObj.bg}, 0 0 24px ${colorObj.bg}, 0 0 40px ${colorObj.glow}, 0 0 60px ${colorObj.glow}`;
             }
             
             document.body.appendChild(p);
@@ -168,25 +174,25 @@ document.addEventListener("DOMContentLoaded", () => {
             {x: 50, y: 95}, {x: 50, y: 80}, {x: 50, y: 65}, {x: 50, y: 48}
         ];
         const lowerLeft = [
-            {x: 50, y: 95}, {x: 50, y: 85}, {x: 45, y: 78}, {x: 35, y: 72}, {x: 25, y: 75}
+            {x: 50, y: 95}, {x: 50, y: 85}, {x: 45, y: 78}, {x: 35, y: 72}, {x: 25, y: 75}, {x: 10, y: 50}, {x: 0, y: 25}, {x: -10, y: 0}
         ];
         const lowerRight = [
-            {x: 50, y: 95}, {x: 50, y: 85}, {x: 55, y: 78}, {x: 65, y: 72}, {x: 75, y: 75}
+            {x: 50, y: 95}, {x: 50, y: 85}, {x: 55, y: 78}, {x: 65, y: 72}, {x: 75, y: 75}, {x: 90, y: 50}, {x: 100, y: 25}, {x: 110, y: 0}
         ];
         const middleLeft = [
-            {x: 50, y: 95}, {x: 50, y: 70}, {x: 42, y: 62}, {x: 30, y: 55}, {x: 18, y: 57}
+            {x: 50, y: 95}, {x: 50, y: 70}, {x: 42, y: 62}, {x: 30, y: 55}, {x: 18, y: 57}, {x: 5, y: 35}, {x: -8, y: 12}
         ];
         const middleRight = [
-            {x: 50, y: 95}, {x: 50, y: 70}, {x: 58, y: 62}, {x: 70, y: 55}, {x: 82, y: 57}
+            {x: 50, y: 95}, {x: 50, y: 70}, {x: 58, y: 62}, {x: 70, y: 55}, {x: 82, y: 57}, {x: 95, y: 35}, {x: 108, y: 12}
         ];
         const petalLeft = [
-            {x: 50, y: 48}, {x: 42, y: 38}, {x: 35, y: 28}, {x: 32, y: 18}
+            {x: 50, y: 48}, {x: 42, y: 38}, {x: 35, y: 28}, {x: 32, y: 18}, {x: 25, y: -10}, {x: 15, y: -45}
         ];
         const petalRight = [
-            {x: 50, y: 48}, {x: 58, y: 38}, {x: 65, y: 28}, {x: 68, y: 18}
+            {x: 50, y: 48}, {x: 58, y: 38}, {x: 65, y: 28}, {x: 68, y: 18}, {x: 75, y: -10}, {x: 85, y: -45}
         ];
         const petalCenter = [
-            {x: 50, y: 48}, {x: 50, y: 35}, {x: 50, y: 20}, {x: 50, y: 7}
+            {x: 50, y: 48}, {x: 50, y: 35}, {x: 50, y: 20}, {x: 50, y: 7}, {x: 50, y: -30}, {x: 50, y: -75}
         ];
 
         // Run signals sequentially:
@@ -246,12 +252,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     spawnPollen(offsetStartX, offsetStartY, true);
                 }, i * 40);
             }
-            
-            // Send another electrical pulse up the central petal upon click!
-            const petalCenter = [
-                {x: 50, y: 48}, {x: 50, y: 35}, {x: 50, y: 20}, {x: 50, y: 7}
-            ];
-            runSignalPulse(petalCenter, 0, { bg: "rgb(255, 255, 255)", glow: "rgba(255, 255, 255, 0.8)" });
         }
+
+        // C. Trigger a fresh, full electrical signal wave immediately and reset the 5s timer
+        triggerSignalNetwork();
+        resetSignalInterval();
     });
 });

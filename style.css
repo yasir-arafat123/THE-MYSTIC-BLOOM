@@ -209,14 +209,13 @@ body.loaded .light-beam {
 /* --- Signaling Electrical Pulses --- */
 .signal-pulse {
     position: absolute;
-    width: 6px;
-    height: 6px;
-    background-color: #fff;
-    border-radius: 50%;
+    font-size: 14px; /* Default size for signal heart */
     pointer-events: none;
     z-index: 40;
-    box-shadow: 0 0 8px #ffd27f, 0 0 16px #ffd27f, 0 0 24px rgba(255, 184, 76, 0.8);
-    filter: blur(0.2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
     opacity: 0;
 }
 
@@ -262,10 +261,12 @@ body.loaded .light-beam {
 /* --- Particle Effects (Pollen/Fireflies) --- */
 .pollen {
     position: absolute;
-    border-radius: 50%;
     pointer-events: none;
     z-index: 30;
-    filter: blur(0.5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
 /* --- Animations --- */
