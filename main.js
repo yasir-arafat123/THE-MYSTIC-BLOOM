@@ -226,13 +226,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Create Web Audio Context (lazily initialized on first interaction due to browser policies)
     let audioCtx;
-    // Mystic pentatonic frequencies (peaceful, consonant, meditative):
-    // F3 (174.61Hz), Ab3 (207.65Hz), Bb3 (233.08Hz), C4 (261.63Hz), Eb4 (311.13Hz)
-    const baseFrequencies = [174.61, 207.65, 233.08, 261.63, 311.13];
+    // D4, E4, G4, A4, C5 (Simple, clean, peaceful pentatonic scale)
+    const bellFrequencies = [293.66, 329.63, 392.00, 440.00, 523.25];
     let noteIndex = 0;
 
-    // Synthesizes an Ethereal Crystal Harp chime with a warm ambient resonance
-    function playMysticHarp() {
+    // Synthesizes a simple, pure, and soothing meditation bell chime
+    function playSimpleBell() {
         try {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -244,62 +243,26 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const now = audioCtx.currentTime;
-            
-            // A. Deep, warm fundamental note (soft drone representing the earth/stem)
-            const fundamental = baseFrequencies[noteIndex];
-            noteIndex = (noteIndex + 1) % baseFrequencies.length;
+            const freq = bellFrequencies[noteIndex];
+            noteIndex = (noteIndex + 1) % bellFrequencies.length;
 
-            const bassOsc = audioCtx.createOscillator();
-            const bassGain = audioCtx.createGain();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
             
-            bassOsc.type = "sine";
-            bassOsc.frequency.setValueAtTime(fundamental, now);
+            // Soothing sine wave for a pure, clean tone
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(freq, now);
             
-            // Bass envelope: soft ramp up, slow 2.2s decay
-            bassGain.gain.setValueAtTime(0, now);
-            bassGain.gain.linearRampToValueAtTime(0.15, now + 0.1);
-            bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+            // Gain envelope: smooth instant attack (10ms) to avoid click, clean exponential decay (1.2s)
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.25, now + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
             
-            bassOsc.connect(bassGain);
-            bassGain.connect(audioCtx.destination);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
             
-            bassOsc.start(now);
-            bassOsc.stop(now + 2.2);
-
-            // B. Cascading, glistening crystal sparkles (representing the floating hearts/stars)
-            // Higher harmonics relative to the fundamental to create perfect consonances (chords)
-            const shimmerHarmonics = [3, 4, 5, 6, 8]; // perfect intervals
-            
-            shimmerHarmonics.forEach((multiplier, i) => {
-                const osc = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                const filter = audioCtx.createBiquadFilter();
-                
-                osc.type = "sine";
-                const delay = i * 0.045; // 45ms stagger creates a gorgeous cascading harp strum
-                const freq = fundamental * multiplier;
-                
-                osc.frequency.setValueAtTime(freq, now + delay);
-                // Add a small detune (chorus effect) to make the chimes sound lush and organic
-                osc.detune.setValueAtTime((Math.random() - 0.5) * 8, now + delay);
-                
-                // Gain envelope: instant bright pluck, decay matching the frequency (higher decays faster)
-                const decayDuration = 0.9 - (i * 0.08);
-                gainNode.gain.setValueAtTime(0, now + delay);
-                gainNode.gain.linearRampToValueAtTime(0.05, now + delay + 0.005);
-                gainNode.gain.exponentialRampToValueAtTime(0.0001, now + delay + decayDuration);
-                
-                // Highpass filter to keep sparkles crisp and cut out muddy frequencies
-                filter.type = "highpass";
-                filter.frequency.setValueAtTime(600, now + delay);
-                
-                osc.connect(gainNode);
-                gainNode.connect(filter);
-                filter.connect(audioCtx.destination);
-                
-                osc.start(now + delay);
-                osc.stop(now + delay + decayDuration + 0.05);
-            });
+            osc.start(now);
+            osc.stop(now + 1.25);
         } catch (e) {
             console.warn("Web Audio API not supported or blocked: ", e);
         }
@@ -314,8 +277,8 @@ document.addEventListener("DOMContentLoaded", () => {
             navigator.vibrate([35, 50, 35]);
         }
 
-        // Play the synthesized ethereal crystal harp chime
-        playMysticHarp();
+        // Play the simple, soothing meditation bell chime
+        playSimpleBell();
 
         // A. Spawn sparkles directly at tap position
         const clickX = e.clientX;

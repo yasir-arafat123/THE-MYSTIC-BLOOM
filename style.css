@@ -73,7 +73,7 @@ body {
 /* --- Header & Typography --- */
 .header {
     position: absolute;
-    top: 8%;
+    top: 4%;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
@@ -84,13 +84,13 @@ body {
 
 .title {
     font-family: 'Cinzel Decorative', Georgia, serif;
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 700;
-    letter-spacing: 0.3em;
+    letter-spacing: 0.25em;
     text-transform: uppercase;
     color: #ffd27f;
     text-shadow: 0 0 10px rgba(255, 210, 127, 0.4), 0 0 20px rgba(255, 184, 76, 0.2);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     opacity: 0;
     transform: translateY(-20px);
     transition: opacity 2s ease, transform 2s ease;
@@ -131,9 +131,9 @@ body.loaded .subtitle {
 /* --- Lotus Container --- */
 .lotus-container {
     position: relative;
-    width: 47.25vmin; /* Increased by 5% */
-    height: 82.68vmin; /* Increased by 5% (maintain aspect ratio 1.75) */
-    bottom: 5vmin;
+    width: 52vmin; 
+    height: 91vmin;
+    bottom: 2vh;
     z-index: 20;
 }
 
@@ -152,7 +152,7 @@ body.loaded .subtitle {
     height: 100%;
     object-fit: contain;
     transform-origin: bottom center;
-    filter: invert(1) sepia(1) saturate(6) hue-rotate(340deg) brightness(1.3) contrast(1.4) drop-shadow(0 0 3px var(--gold-glow));
+    filter: invert(1) sepia(1) saturate(7) hue-rotate(340deg) brightness(1.35) contrast(1.4) drop-shadow(0 0 4px var(--gold-glow));
     
     /* Start state: Clipped circle centered at bottom-center */
     clip-path: circle(0% at 50% 100%);
@@ -161,7 +161,7 @@ body.loaded .subtitle {
 
 body.loaded .lotus-img {
     clip-path: circle(130% at 50% 100%); /* Expands outward like spreading signals */
-    animation: pulse-glow-flower 4s ease-in-out infinite alternate;
+    animation: pulse-opacity-flower 4s ease-in-out infinite alternate;
     animation-delay: 5.5s;
 }
 
@@ -277,13 +277,9 @@ body.loaded .light-beam {
     to { clip-path: inset(0 0 0 0); }
 }
 
-@keyframes pulse-glow-flower {
-    0% {
-        filter: invert(1) sepia(1) saturate(6) hue-rotate(340deg) brightness(1.25) contrast(1.35) drop-shadow(0 0 3px var(--gold-glow));
-    }
-    100% {
-        filter: invert(1) sepia(1) saturate(8) hue-rotate(340deg) brightness(1.45) contrast(1.45) drop-shadow(0 0 8px var(--gold-glow-intense));
-    }
+@keyframes pulse-opacity-flower {
+    0% { opacity: 0.82; }
+    100% { opacity: 1.0; }
 }
 
 @keyframes core-pulsate {
@@ -297,7 +293,7 @@ body.loaded .light-beam {
     font-size: 1.8rem;
     color: rgba(255, 210, 127, 0.7);
     text-shadow: 0 0 10px rgba(255, 210, 127, 0.3);
-    margin-top: 12px;
+    margin-top: 8px;
     pointer-events: none;
     user-select: none;
     opacity: 0;
@@ -312,9 +308,9 @@ body.loaded .signature-credit {
 /* --- Mobile Responsiveness --- */
 @media (max-width: 600px) {
     .lotus-container {
-        width: 73.5vw; /* Increased by 5% */
-        height: 128.6vw; /* Increased by 5% (maintain aspect ratio 1.75) */
-        bottom: 8vh;
+        width: 81vw;
+        height: 141.75vw;
+        bottom: 5vh;
     }
     
     .title {
@@ -328,12 +324,24 @@ body.loaded .signature-credit {
     }
     
     .header {
-        top: 6%;
+        top: 4%;
     }
     
     .signature-credit {
         font-size: 1.4rem;
         margin-top: 6px;
+    }
+}
+
+/* Ensure no overlap on shorter mobile devices */
+@media (max-height: 720px) and (max-width: 600px) {
+    .lotus-container {
+        width: 66vw;
+        height: 115.5vw;
+        bottom: 3vh;
+    }
+    .header {
+        top: 2%;
     }
 }
 
