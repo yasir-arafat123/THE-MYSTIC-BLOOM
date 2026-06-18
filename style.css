@@ -30,6 +30,8 @@ body {
     perspective: 1000px;
     font-family: 'Montserrat', sans-serif;
     color: var(--text-primary);
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* --- Night Sky & Stars --- */
