@@ -288,6 +288,18 @@ body.loaded .light-beam {
 
 body.loaded .signature-credit {
     opacity: 1;
+    animation: name-glow-pulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes name-glow-pulse {
+    0% {
+        text-shadow: 0 0 6px rgba(255, 210, 127, 0.3), 0 0 12px rgba(255, 184, 76, 0.1);
+        color: rgba(255, 210, 127, 0.65);
+    }
+    100% {
+        text-shadow: 0 0 12px rgba(255, 210, 127, 0.9), 0 0 22px rgba(255, 184, 76, 0.6), 0 0 32px rgba(255, 184, 76, 0.3);
+        color: rgba(255, 230, 160, 1.0);
+    }
 }
 
 /* --- Mobile Responsiveness --- */
