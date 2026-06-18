@@ -36,6 +36,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Helper to spawn a floating pollen particle
     function spawnPollen(startX, startY, isBurst = false) {
+        // Performance guard: prevent DOM overloading from rapid click storms
+        if (document.getElementsByClassName("pollen").length > 70) return;
+
         const p = document.createElement("div");
         p.className = "pollen";
         p.innerText = "❤"; // Unicode Heart
@@ -83,6 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Helper to spawn a signaling pulse node along a path
     function runSignalPulse(path, delay, colorObj) {
         setTimeout(() => {
+            // Performance guard: prevent DOM overloading from rapid click storms
+            if (document.getElementsByClassName("signal-pulse").length > 50) return;
+
             const p = document.createElement("div");
             p.className = "signal-pulse";
             p.innerText = "❤"; // Glowing heart node!
@@ -289,46 +295,53 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    let lastHeavyTriggerTime = 0;
+
     // 4. Interactive Click/Tap Particles, Sound & Vibration
     window.addEventListener("pointerdown", (e) => {
         if (!document.body.classList.contains("loaded")) return;
 
-        // Vibrate mobile phone on tap with a premium double-pulse pattern (resembling a heartbeat)
+        // A. Immediate haptic & audio feedback (always triggers for responsiveness)
         if (navigator.vibrate) {
             navigator.vibrate([35, 50, 35]);
         }
-
-        // Play the simple, soothing meditation bell chime
         playSimpleBell();
 
-        // A. Spawn sparkles directly at tap position
+        const now = Date.now();
         const clickX = e.clientX;
         const clickY = e.clientY;
-        const clickSparkles = 8;
+
+        // B. Spawn a light cluster of sparkles at tap position (always, unless max particle limit is reached)
+        const clickSparkles = 5; // Reduced from 8 to save performance
         for (let i = 0; i < clickSparkles; i++) {
             spawnPollen(clickX, clickY, true);
         }
 
-        // B. Spawn a massive fountain of particles from the center of the lotus flower
-        const lotus = document.querySelector(".lotus-img");
-        if (lotus) {
-            const rect = lotus.getBoundingClientRect();
-            const flowerX = rect.left + rect.width / 2;
-            const flowerY = rect.top + rect.height * 0.22; // centered at core (~22% height of full container)
+        // C. Throttle heavy animations (branch signal waves & flower fountain) to once per 800ms
+        if (now - lastHeavyTriggerTime > 800) {
+            lastHeavyTriggerTime = now;
 
-            const flowerSparkles = 15;
-            for (let i = 0; i < flowerSparkles; i++) {
-                const offsetStartX = flowerX + (Math.random() - 0.5) * 30;
-                const offsetStartY = flowerY + (Math.random() - 0.5) * 30;
-                
-                setTimeout(() => {
-                    spawnPollen(offsetStartX, offsetStartY, true);
-                }, i * 40);
+            // Spawn flower fountain sparkles
+            const lotus = document.querySelector(".lotus-img");
+            if (lotus) {
+                const rect = lotus.getBoundingClientRect();
+                const flowerX = rect.left + rect.width / 2;
+                const flowerY = rect.top + rect.height * 0.22; // centered at core (~22% height of full container)
+
+                const flowerSparkles = 10; // Reduced from 15 to save performance
+                for (let i = 0; i < flowerSparkles; i++) {
+                    const offsetStartX = flowerX + (Math.random() - 0.5) * 30;
+                    const offsetStartY = flowerY + (Math.random() - 0.5) * 30;
+                    
+                    setTimeout(() => {
+                        spawnPollen(offsetStartX, offsetStartY, true);
+                    }, i * 40);
+                }
             }
-        }
 
-        // C. Trigger a fresh, full electrical signal wave immediately and reset the 5s timer
-        triggerSignalNetwork();
-        resetSignalInterval();
+            // Trigger fresh branch electrical signal wave and reset the auto loop timer
+            triggerSignalNetwork();
+            resetSignalInterval();
+        }
     });
 });
