@@ -196,6 +196,8 @@ body.loaded .light-beam {
 /* --- Signaling Electrical Pulses --- */
 .signal-pulse {
     position: absolute;
+    left: 0;
+    top: 0;
     font-size: 14px; /* Default size for signal heart */
     pointer-events: none;
     z-index: 40;

@@ -115,8 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (index === path.length - 1) opacity = 0;
                 
                 return {
-                    left: `${x}px`,
-                    top: `${y}px`,
+                    transform: `translate(${x}px, ${y}px)`,
                     opacity: opacity
                 };
             });
@@ -239,9 +238,11 @@ document.addEventListener("DOMContentLoaded", () => {
     function startBackgroundPiano() {
         if (isPlayingBackgroundMusic) return;
         
-        bgAudio = new Audio("night changes.mp3");
-        bgAudio.loop = true;
-        bgAudio.volume = 0.7;
+        if (!bgAudio) {
+            bgAudio = new Audio("night changes.mp3");
+            bgAudio.loop = true;
+            bgAudio.volume = 0.7;
+        }
         
         bgAudio.play().then(() => {
             isPlayingBackgroundMusic = true;
