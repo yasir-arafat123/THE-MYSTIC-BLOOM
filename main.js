@@ -401,60 +401,6 @@ document.addEventListener("DOMContentLoaded", () => {
         scheduler();
     }
 
-    // Synthesizes the user's interactive tap chime (connected directly to destination so it never mutes)
-    function playSimpleBell(pressure = 0.5) {
-        try {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === "suspended") {
-                audioCtx.resume();
-            }
-
-            const now = audioCtx.currentTime;
-            
-            // Get the current active chord in the background loop
-            const activeChord = songChords[currentMeasureIndex];
-            // Pick a random chord note and shift it 2 octaves up for a gorgeous celestial sparkle!
-            const baseFreq = activeChord.chord[Math.floor(Math.random() * activeChord.chord.length)];
-            const freq = baseFreq * 2; // transpose 2 octaves up
-
-            const baseGain = 0.05 + (pressure * 0.08); // Range: 0.05 to 0.13 (soft, sparkling chimes)
-
-            const osc1 = audioCtx.createOscillator();
-            const gain1 = audioCtx.createGain();
-            osc1.type = "sine";
-            osc1.frequency.setValueAtTime(freq, now);
-            
-            gain1.gain.setValueAtTime(0, now);
-            gain1.gain.linearRampToValueAtTime(baseGain, now + 0.005);
-            gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
-
-            osc1.connect(gain1);
-            gain1.connect(audioCtx.destination);
-            osc1.start(now);
-            osc1.stop(now + 1.25);
-
-            // Add a tiny detuned high overtone for fairy-dust shimmer
-            const osc2 = audioCtx.createOscillator();
-            const gain2 = audioCtx.createGain();
-            osc2.type = "sine";
-            osc2.frequency.setValueAtTime(freq * 1.5, now); // perfect fifth overtone
-            osc2.detune.setValueAtTime((Math.random() - 0.5) * 12, now);
-            
-            gain2.gain.setValueAtTime(0, now);
-            gain2.gain.linearRampToValueAtTime(baseGain * 0.3, now + 0.005);
-            gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
-
-            osc2.connect(gain2);
-            gain2.connect(audioCtx.destination);
-            osc2.start(now);
-            osc2.stop(now + 0.65);
-        } catch (e) {
-            console.warn("Web Audio API not supported or blocked: ", e);
-        }
-    }
-
     let lastHeavyTriggerTime = 0;
 
     // Hook up music mute/unmute toggle in top-right
@@ -495,14 +441,10 @@ document.addEventListener("DOMContentLoaded", () => {
             startBackgroundPiano();
         }
 
-        // A. Immediate haptic & audio feedback (always triggers for responsiveness)
+        // A. Immediate haptic feedback (always triggers for responsiveness)
         if (navigator.vibrate) {
             navigator.vibrate([35, 50, 35]);
         }
-        
-        // Extract pointer pressure (default to 0.5 for standard clicks)
-        const pressure = e.pressure !== undefined && e.pressure > 0 ? e.pressure : 0.5;
-        playSimpleBell(pressure);
 
         const now = Date.now();
         const clickX = e.clientX;
