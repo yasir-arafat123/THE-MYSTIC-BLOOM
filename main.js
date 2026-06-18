@@ -224,9 +224,58 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }, 400);
 
-    // 4. Interactive Click Particles
+    // Create Web Audio Context (lazily initialized on first click due to browser policies)
+    let audioCtx;
+    const chords = [
+        [1046.50, 1318.51, 1567.98, 2093.00], // C6, E6, G6, C7 (Bright Major)
+        [1174.66, 1396.91, 1760.00, 2349.32], // Dm6, F6, A6, D7 (Warm Minor)
+        [1318.51, 1567.98, 1960.00, 2637.02], // Em6, G6, B6, E7 (Soft Mystical)
+        [1396.91, 1760.00, 2093.00, 2793.83]  // F6, A6, C7, F7 (Luminous Major)
+    ];
+    let chordIndex = 0;
+
+    function playMagicalChime() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        // Resume context if suspended (common in mobile browsers)
+        if (audioCtx.state === "suspended") {
+            audioCtx.resume();
+        }
+
+        const now = audioCtx.currentTime;
+        const notes = chords[chordIndex];
+        chordIndex = (chordIndex + 1) % chords.length; // Cycle chords per click
+
+        notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            // Soft sine wave for clear music box chimes
+            osc.type = "sine";
+            // Stagger notes by 60ms to create a fluid harp arpeggio
+            osc.frequency.setValueAtTime(freq, now + i * 0.06);
+            
+            // Gain envelope: instant attack, long smooth decay
+            gainNode.gain.setValueAtTime(0, now + i * 0.06);
+            gainNode.gain.linearRampToValueAtTime(0.10, now + i * 0.06 + 0.005);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.06 + 1.2);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(now + i * 0.06);
+            osc.stop(now + i * 0.06 + 1.2);
+        });
+    }
+
+    // 4. Interactive Click Particles & Sound
     window.addEventListener("click", (e) => {
         if (!document.body.classList.contains("loaded")) return;
+
+        // Play the synthesized magical chime arpeggio
+        playMagicalChime();
 
         // A. Spawn sparkles directly at click position
         const clickX = e.clientX;
