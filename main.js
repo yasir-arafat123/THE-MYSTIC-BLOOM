@@ -226,11 +226,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Create Web Audio Context (lazily initialized on first interaction due to browser policies)
     let audioCtx;
-    // D4, E4, G4, A4, C5 (Simple, clean, peaceful pentatonic scale)
-    const bellFrequencies = [293.66, 329.63, 392.00, 440.00, 523.25];
+    // Melody frequencies for Yiruma's "River Flows in You" (instantly recognizable, peaceful piano melody)
+    const melodyFrequencies = [
+        739.99, // F#5
+        659.25, // E5
+        739.99, // F#5
+        659.25, // E5
+        739.99, // F#5
+        440.00, // A4
+        554.37, // C#5
+        329.63, // E4
+        369.99, // F#4
+        293.66, // D4
+        369.99, // F#4
+        440.00, // A4
+        587.33, // D5
+        554.37, // C#5
+        493.88, // B4
+        440.00, // A4
+        415.30, // G#4
+        440.00, // A4
+        493.88, // B4
+        329.63  // E4
+    ];
     let noteIndex = 0;
 
-    // Synthesizes a simple, pure, and soothing meditation bell chime
+    // Synthesizes a simple, pure, and soothing meditation bell chime playing the song melody
     function playSimpleBell() {
         try {
             if (!audioCtx) {
@@ -243,8 +264,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const now = audioCtx.currentTime;
-            const freq = bellFrequencies[noteIndex];
-            noteIndex = (noteIndex + 1) % bellFrequencies.length;
+            const freq = melodyFrequencies[noteIndex];
+            noteIndex = (noteIndex + 1) % melodyFrequencies.length;
 
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
