@@ -5,8 +5,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.add("loaded");
         clearTimeout(loadTimeout);
         
-        // Trigger electrical branching signals on page load
+        // Trigger electrical branching signals immediately on load
         triggerSignalNetwork();
+        
+        // Repeat signaling pulses every 5 seconds
+        setInterval(triggerSignalNetwork, 5000);
     }, 1000);
 
     // 2. Generate background stars
@@ -114,11 +117,51 @@ document.addEventListener("DOMContentLoaded", () => {
         }, delay);
     }
 
+    // Define the color themes for repeating signal waves
+    const themes = [
+        // Theme 1: Gold, Cyan, Rose Pink
+        {
+            primary: { bg: "rgb(255, 200, 80)", glow: "rgba(255, 170, 50, 0.8)" },
+            secondary: { bg: "rgb(80, 240, 255)", glow: "rgba(30, 200, 255, 0.8)" },
+            accent: { bg: "rgb(255, 135, 180)", glow: "rgba(255, 80, 150, 0.8)" }
+        },
+        // Theme 2: Rose, Purple/White, Coral
+        {
+            primary: { bg: "rgb(255, 135, 180)", glow: "rgba(255, 80, 150, 0.8)" },
+            secondary: { bg: "rgb(230, 210, 255)", glow: "rgba(180, 140, 255, 0.8)" },
+            accent: { bg: "rgb(255, 140, 90)", glow: "rgba(255, 90, 40, 0.8)" }
+        },
+        // Theme 3: Cyan, Emerald, Gold
+        {
+            primary: { bg: "rgb(80, 240, 255)", glow: "rgba(30, 200, 255, 0.8)" },
+            secondary: { bg: "rgb(100, 255, 180)", glow: "rgba(50, 220, 130, 0.8)" },
+            accent: { bg: "rgb(255, 200, 80)", glow: "rgba(255, 170, 50, 0.8)" }
+        },
+        // Theme 4: Coral, Gold, White
+        {
+            primary: { bg: "rgb(255, 140, 90)", glow: "rgba(255, 90, 40, 0.8)" },
+            secondary: { bg: "rgb(255, 200, 80)", glow: "rgba(255, 170, 50, 0.8)" },
+            accent: { bg: "rgb(255, 255, 255)", glow: "rgba(255, 255, 255, 0.8)" }
+        },
+        // Theme 5: Lavender, Violet, Cyan
+        {
+            primary: { bg: "rgb(200, 150, 255)", glow: "rgba(160, 100, 255, 0.8)" },
+            secondary: { bg: "rgb(120, 100, 255)", glow: "rgba(80, 50, 255, 0.8)" },
+            accent: { bg: "rgb(80, 240, 255)", glow: "rgba(30, 200, 255, 0.8)" }
+        }
+    ];
+
+    let currentThemeIndex = 0;
+
     // Define and trigger the sequential signaling network
     function triggerSignalNetwork() {
-        const goldColor = { bg: "rgb(255, 200, 80)", glow: "rgba(255, 170, 50, 0.8)" };
-        const cyanColor = { bg: "rgb(80, 240, 255)", glow: "rgba(30, 200, 255, 0.8)" };
-        const pinkColor = { bg: "rgb(255, 135, 180)", glow: "rgba(255, 80, 150, 0.8)" };
+        // Retrieve colors from the current theme and cycle to the next
+        const currentTheme = themes[currentThemeIndex];
+        currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+
+        const primaryColor = currentTheme.primary;
+        const secondaryColor = currentTheme.secondary;
+        const accentColor = currentTheme.accent;
         
         // Coordinates relative to the lotus bounding box
         const centerStem = [
@@ -146,24 +189,24 @@ document.addEventListener("DOMContentLoaded", () => {
             {x: 50, y: 48}, {x: 50, y: 35}, {x: 50, y: 20}, {x: 50, y: 7}
         ];
 
-        // Run signals sequentially as the circle mask expands:
+        // Run signals sequentially:
         // 1. Center stem signal runs immediately
-        runSignalPulse(centerStem, 0, goldColor);
-        runSignalPulse(centerStem, 350, cyanColor); 
+        runSignalPulse(centerStem, 0, primaryColor);
+        runSignalPulse(centerStem, 350, secondaryColor); 
         
-        // 2. Lower branches fire as mask expands there
-        runSignalPulse(lowerLeft, 800, goldColor);
-        runSignalPulse(lowerRight, 800, goldColor);
+        // 2. Lower branches fire
+        runSignalPulse(lowerLeft, 800, primaryColor);
+        runSignalPulse(lowerRight, 800, primaryColor);
         
         // 3. Middle branches fire
-        runSignalPulse(middleLeft, 1600, cyanColor);
-        runSignalPulse(middleRight, 1600, cyanColor);
+        runSignalPulse(middleLeft, 1600, secondaryColor);
+        runSignalPulse(middleRight, 1600, secondaryColor);
         
         // 4. Petals branch signals fire as the flower blooms
-        runSignalPulse(petalLeft, 2600, pinkColor);
-        runSignalPulse(petalRight, 2600, pinkColor);
-        runSignalPulse(petalCenter, 3000, goldColor);
-        runSignalPulse(petalCenter, 3600, cyanColor);
+        runSignalPulse(petalLeft, 2600, accentColor);
+        runSignalPulse(petalRight, 2600, accentColor);
+        runSignalPulse(petalCenter, 3000, primaryColor);
+        runSignalPulse(petalCenter, 3600, secondaryColor);
     }
 
     // 3. Automatically spawn ambient pollen rising from bottom
