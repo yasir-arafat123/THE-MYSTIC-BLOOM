@@ -129,8 +129,8 @@ body.loaded .subtitle {
 /* --- Lotus Container --- */
 .lotus-container {
     position: relative;
-    width: 45vmin;
-    height: 78.75vmin; /* Aspect ratio matches image coordinates (1375 / 784 = 1.75) */
+    width: 47.25vmin; /* Increased by 5% */
+    height: 82.68vmin; /* Increased by 5% (maintain aspect ratio 1.75) */
     bottom: 5vmin;
     z-index: 20;
 }
@@ -289,21 +289,18 @@ body.loaded .light-beam {
     100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.85; }
 }
 
-/* --- Signature Credit --- */
+/* --- Signature Credit (Positioned under subtitle) --- */
 .signature-credit {
-    position: absolute;
-    bottom: 4vh;
-    right: 5vw;
     font-family: 'Alex Brush', cursive;
-    font-size: 2rem;
+    font-size: 1.8rem;
     color: rgba(255, 210, 127, 0.7);
     text-shadow: 0 0 10px rgba(255, 210, 127, 0.3);
-    z-index: 100;
+    margin-top: 12px;
     pointer-events: none;
     user-select: none;
     opacity: 0;
     transition: opacity 3s ease;
-    transition-delay: 4.5s; /* Fade in once the bloom completes */
+    transition-delay: 2.2s; /* Fades in shortly after the subtitle */
 }
 
 body.loaded .signature-credit {
@@ -313,8 +310,8 @@ body.loaded .signature-credit {
 /* --- Mobile Responsiveness --- */
 @media (max-width: 600px) {
     .lotus-container {
-        width: 70vw;
-        height: 122.5vw; /* Maintain 1.75 aspect ratio (70 * 1.75 = 122.5) */
+        width: 73.5vw; /* Increased by 5% */
+        height: 128.6vw; /* Increased by 5% (maintain aspect ratio 1.75) */
         bottom: 8vh;
     }
     
@@ -333,9 +330,8 @@ body.loaded .signature-credit {
     }
     
     .signature-credit {
-        bottom: 2vh;
-        right: 6vw;
-        font-size: 1.6rem;
+        font-size: 1.4rem;
+        margin-top: 6px;
     }
 }
 
