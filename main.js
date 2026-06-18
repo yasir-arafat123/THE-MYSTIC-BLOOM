@@ -232,11 +232,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Create Web Audio Context (lazily initialized on first interaction due to browser policies)
     let audioCtx;
-    // Chorus melody frequencies for One Direction's "Night Changes" (G Major version)
-    // We're only getting older, baby
-    // And I've been thinking about it lately
-    // Does it ever drive you crazy
-    // Just how fast the night changes
+    let bgGainNode;
+    let isPlayingBackgroundMusic = false;
+    let isMuted = false;
+    let nextNoteTime = 0.0;
+    let currentBeat = 0;
+    const tempo = 84; // Meditation tempo
+    const secondsPerBeat = 60.0 / tempo;
+    const lookahead = 25.0; // MS to schedule ahead
+    const scheduleAheadTime = 0.1; // Scheduling boundary (seconds)
+    let schedulerTimerID;
+
+    // Chord progression notes: Bass note + chord notes (arpeggiated)
+    // We define G Major -> Em7 -> Am7 -> D7 (Verse) and C -> D -> G -> Em (Chorus) for Night Changes
+    const verseChords = [
+        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] }, // G Major
+        { bass: 82.41, chord: [164.81, 246.94, 293.66, 392.00] }, // Em7
+        { bass: 110.00, chord: [220.00, 261.63, 329.63, 392.00] }, // Am7
+        { bass: 73.42, chord: [146.83, 220.00, 293.66, 349.23] }  // D7
+    ];
+
+    const chorusChords = [
+        { bass: 130.81, chord: [261.63, 329.63, 392.00, 523.25] }, // C Major
+        { bass: 146.83, chord: [293.66, 369.99, 440.00, 587.33] }, // D Major
+        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] },  // G Major
+        { bass: 82.41, chord: [164.81, 246.94, 329.63, 392.00] },  // Em
+        { bass: 130.81, chord: [261.63, 329.63, 392.00, 523.25] }, // C Major
+        { bass: 146.83, chord: [293.66, 369.99, 440.00, 587.33] }, // D Major
+        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] },  // G Major
+        { bass: 98.00, chord: [196.00, 246.94, 293.66, 392.00] }   // G Major
+    ];
+
+    // Loops 2x Verse, 1x Chorus
+    const songChords = [
+        ...verseChords, ...verseChords,
+        ...chorusChords
+    ];
+
+    // Chorus melody frequencies for One Direction's "Night Changes"
     const melodyFrequencies = [
         493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00, 392.00, // We're only getting older, baby
         493.88, 493.88, 493.88, 493.88, 523.25, 493.88, 440.00, 392.00, 392.00, // And I've been thinking about it lately
@@ -245,14 +278,97 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
     let noteIndex = 0;
 
-    // Synthesizes a gentle piano bell strike with soft harmonics, volume scaling based on click pressure
+    // Synthesizes a background piano voice (connected to bgGainNode)
+    function schedulePlayPiano(freq, time, volume, decay) {
+        if (!bgGainNode) return;
+        
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(freq, time);
+        
+        gain1.gain.setValueAtTime(0, time);
+        gain1.gain.linearRampToValueAtTime(volume, time + 0.01);
+        gain1.gain.exponentialRampToValueAtTime(0.0001, time + decay);
+
+        osc1.connect(gain1);
+        gain1.connect(bgGainNode);
+        osc1.start(time);
+        osc1.stop(time + decay + 0.05);
+
+        // Add warm octave overtone
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(freq * 2, time);
+        
+        gain2.gain.setValueAtTime(0, time);
+        gain2.gain.linearRampToValueAtTime(volume * 0.22, time + 0.01);
+        gain2.gain.exponentialRampToValueAtTime(0.0001, time + (decay * 0.5));
+        
+        osc2.connect(gain2);
+        gain2.connect(bgGainNode);
+        osc2.start(time);
+        osc2.stop(time + (decay * 0.5) + 0.05);
+    }
+
+    // Schedules a beat arpeggio step
+    function scheduleBeat(beatNumber, time) {
+        const measure = Math.floor(beatNumber / 8) % songChords.length;
+        const step = beatNumber % 8; // 8 eighth-notes per measure
+        const chordInfo = songChords[measure];
+
+        // Step 0: Bass downbeat
+        if (step === 0) {
+            schedulePlayPiano(chordInfo.bass, time, 0.09, 2.2);
+            schedulePlayPiano(chordInfo.bass * 2, time, 0.03, 1.6);
+        }
+
+        // Steps 1-7: Rolling arpeggios
+        const arpeggioPattern = [0, 1, 2, 3, 2, 1, 0];
+        if (step > 0 && step < 8) {
+            const index = arpeggioPattern[step - 1];
+            const noteFreq = chordInfo.chord[index];
+            schedulePlayPiano(noteFreq, time, 0.045, 1.3);
+        }
+    }
+
+    function scheduler() {
+        while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+            scheduleBeat(currentBeat, nextNoteTime);
+            nextNoteTime += secondsPerBeat / 2; // Advance by eighth note
+            currentBeat++;
+        }
+        schedulerTimerID = setTimeout(scheduler, lookahead);
+    }
+
+    function startBackgroundPiano() {
+        if (isPlayingBackgroundMusic) return;
+        
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === "suspended") {
+            audioCtx.resume();
+        }
+        
+        // Create gain node specifically for the background piano loops
+        bgGainNode = audioCtx.createGain();
+        bgGainNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
+        bgGainNode.connect(audioCtx.destination);
+        
+        isPlayingBackgroundMusic = true;
+        nextNoteTime = audioCtx.currentTime;
+        currentBeat = 0;
+        scheduler();
+    }
+
+    // Synthesizes the user's interactive tap chime (connected directly to destination so it never mutes)
     function playSimpleBell(pressure = 0.5) {
         try {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
-            
-            // Resume context if suspended (common in mobile browsers)
             if (audioCtx.state === "suspended") {
                 audioCtx.resume();
             }
@@ -261,25 +377,22 @@ document.addEventListener("DOMContentLoaded", () => {
             const freq = melodyFrequencies[noteIndex];
             noteIndex = (noteIndex + 1) % melodyFrequencies.length;
 
-            // Scale volume based on pointer pressure (gentler tap = softer sound)
             const baseGain = 0.08 + (pressure * 0.14); // Range: 0.08 to 0.22
 
-            // 1. Fundamental string strike (sine wave)
             const osc1 = audioCtx.createOscillator();
             const gain1 = audioCtx.createGain();
             osc1.type = "sine";
             osc1.frequency.setValueAtTime(freq, now);
             
             gain1.gain.setValueAtTime(0, now);
-            gain1.gain.linearRampToValueAtTime(baseGain, now + 0.008); // 8ms attack
-            gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.4); // 1.4s decay
+            gain1.gain.linearRampToValueAtTime(baseGain, now + 0.008);
+            gain1.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
 
             osc1.connect(gain1);
             gain1.connect(audioCtx.destination);
             osc1.start(now);
             osc1.stop(now + 1.45);
 
-            // 2. Second harmonic (soft octave chime)
             const osc2 = audioCtx.createOscillator();
             const gain2 = audioCtx.createGain();
             osc2.type = "sine";
@@ -287,14 +400,13 @@ document.addEventListener("DOMContentLoaded", () => {
             
             gain2.gain.setValueAtTime(0, now);
             gain2.gain.linearRampToValueAtTime(baseGain * 0.25, now + 0.008);
-            gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.7); // decays twice as fast
+            gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
 
             osc2.connect(gain2);
             gain2.connect(audioCtx.destination);
             osc2.start(now);
             osc2.stop(now + 0.75);
 
-            // 3. Third harmonic (subtle fifth)
             const osc3 = audioCtx.createOscillator();
             const gain3 = audioCtx.createGain();
             osc3.type = "sine";
@@ -302,7 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             gain3.gain.setValueAtTime(0, now);
             gain3.gain.linearRampToValueAtTime(baseGain * 0.12, now + 0.01);
-            gain3.gain.exponentialRampToValueAtTime(0.0001, now + 0.4); // decays very fast
+            gain3.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
 
             osc3.connect(gain3);
             gain3.connect(audioCtx.destination);
@@ -315,9 +427,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let lastHeavyTriggerTime = 0;
 
+    // Hook up music mute/unmute toggle in top-right
+    const musicToggle = document.getElementById("musicToggle");
+    if (musicToggle) {
+        musicToggle.addEventListener("pointerdown", (e) => {
+            e.stopPropagation(); // Don't trigger window pointerdown sparkles/vibrations
+            
+            if (!isPlayingBackgroundMusic) {
+                startBackgroundPiano();
+                musicToggle.querySelector(".music-icon").innerText = "🔊";
+                return;
+            }
+
+            const now = audioCtx.currentTime;
+            if (isMuted) {
+                // Smoothly fade background arpeggios back in
+                bgGainNode.gain.setValueAtTime(bgGainNode.gain.value, now);
+                bgGainNode.gain.linearRampToValueAtTime(0.7, now + 0.3);
+                musicToggle.querySelector(".music-icon").innerText = "🔊";
+                isMuted = false;
+            } else {
+                // Smoothly fade background arpeggios out
+                bgGainNode.gain.setValueAtTime(bgGainNode.gain.value, now);
+                bgGainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                musicToggle.querySelector(".music-icon").innerText = "🔇";
+                isMuted = true;
+            }
+        });
+    }
+
     // 4. Interactive Click/Tap Particles, Sound & Vibration
     window.addEventListener("pointerdown", (e) => {
         if (!document.body.classList.contains("loaded")) return;
+
+        // Auto-start background accompaniment on first user interaction
+        if (!isPlayingBackgroundMusic) {
+            startBackgroundPiano();
+        }
 
         // A. Immediate haptic & audio feedback (always triggers for responsiveness)
         if (navigator.vibrate) {
