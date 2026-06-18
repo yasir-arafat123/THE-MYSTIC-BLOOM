@@ -97,24 +97,9 @@ body {
     transition-delay: 0.5s;
 }
 
-.subtitle {
-    font-size: 0.8rem;
-    font-weight: 200;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    opacity: 0;
-    transition: opacity 2s ease;
-    transition-delay: 1.5s;
-}
-
 body.loaded .title {
     opacity: 1;
     transform: translateY(0);
-}
-
-body.loaded .subtitle {
-    opacity: 1;
 }
 
 /* --- Scene Layout --- */
@@ -298,7 +283,7 @@ body.loaded .light-beam {
     user-select: none;
     opacity: 0;
     transition: opacity 3s ease;
-    transition-delay: 2.2s; /* Fades in shortly after the subtitle */
+    transition-delay: 1.2s; /* Fades in shortly after the title */
 }
 
 body.loaded .signature-credit {
@@ -317,11 +302,7 @@ body.loaded .signature-credit {
         font-size: 1.8rem;
         letter-spacing: 0.15em;
     }
-    
-    .subtitle {
-        font-size: 0.65rem;
-        letter-spacing: 0.1em;
-    }
+
     
     .header {
         top: 4%;
